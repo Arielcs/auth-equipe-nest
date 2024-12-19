@@ -1,0 +1,70 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+model Usuario {
+  id                    String   @id @default(uuid())
+  nomeCompleto          String
+  email                 String   @unique
+  senha                 String
+  criadoEm              DateTime @default(now())
+  ativo                 Boolean  @default(true)
+  tokenRecuperacao      String?  
+  dataExpiracaoToken    DateTime?
+  doisFatoresAtivado    Boolean  @default(false)
+  telefone              String?
+  urlImagemPerfil       String?
+
+  usuarioPerfis         UsuarioPerfil[]
+}
+
+model Perfil {
+  id          String     @id @default(uuid())
+  nome        String     @unique
+  descricao   String?
+  criadoEm    DateTime   @default(now())
+  ativo       Boolean    @default(true)
+
+  usuarioPerfis    UsuarioPerfil[]
+  perfilPermissoes PerfilPermissao[]
+}
+
+model Permissao {
+  id          String     @id @default(uuid())
+  nome        String     @unique
+  descricao   String?
+  criadoEm    DateTime   @default(now())
+  ativo       Boolean    @default(true)
+
+  perfilPermissoes PerfilPermissao[]
+}
+
+model UsuarioPerfil {
+  id        String   @id @default(uuid())
+  usuarioId String
+  perfilId  String
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+  perfil    Perfil   @relation(fields: [perfilId], references: [id])
+
+  @@unique([usuarioId, perfilId])
+}
+
+model PerfilPermissao {
+  id          String    @id @default(uuid())
+  perfilId    String
+  permissaoId String
+  perfil      Perfil    @relation(fields: [perfilId], references: [id])
+  permissao   Permissao @relation(fields: [permissaoId], references: [id])
+
+  @@unique([perfilId, permissaoId])
+}
